@@ -1,12 +1,20 @@
-# Byte-compiled / optimized / DLL files
+# Environment credentials (CRITICAL: Protect private API keys)
+.env
+*.env
+!.env.example
+
+# Python bytecode and build artifacts
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+build/
+dist/
+*.egg-info/
 
-# Environments & Dependencies
-.env
-.venv/
+# Virtual Environments
 venv/
+.venv/
 ENV/
 env/
 
@@ -15,16 +23,21 @@ env/
 .coverage
 htmlcov/
 
-# Local raw & processed data cache
+# Local Raw & Processed Alternative Data Caches
 data/raw/*.csv
 data/raw/*.json
 data/processed/*.json
+data/processed/*.csv
 
-# Keep structure intact
+# Keep directories tracked in git
 !data/raw/.gitkeep
 !data/processed/.gitkeep
+!config/settings.yaml
 !reports/.gitkeep
+!reports/*.html
+!reports/*.md
 
-# OS generated
+# Operating System files
 .DS_Store
 Thumbs.db
+desktop.ini

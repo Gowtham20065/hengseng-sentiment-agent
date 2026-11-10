@@ -1,18 +1,29 @@
 # Hang Seng & KRX Sentiment Price Prediction Agent
 ### Institutional-Grade Quant Pipeline for Asian Equities (HKEX & KRX)
-**Internship Technical Assessment — CrowdWisdomTrading**
+**Internship Technical Assessment — CrowdWisdomTrading**  
+**Reviewer:** `gilad@crowdwisdomtrading.com`
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Tests Passing](https://img.shields.io/badge/pytest-20%20passed-brightgreen.svg)]()
+[![Code Architecture](https://img.shields.io/badge/ML%20Architecture-LightGBM%20%2B%20Gemini-orange.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 1. Executive Summary & Architecture
+## 1. Executive Overview
 
-This repository delivers an end-to-end quantitative intelligence agent that forecasts equity price direction and returns at horizon $n+1$ across **10 benchmark equities** in Greater China (**HKEX Hang Seng Index**) and South Korea (**KRX KOSPI**).
+This repository provides an end-to-end quantitative market intelligence and predictive modeling pipeline that forecasts next-bar ($n+1$) equity price returns and direction across **10 benchmark equities** in Greater China (**HKEX Hang Seng Index**) and South Korea (**KRX KOSPI**).
 
-The system integrates **asynchronous multilingual retail social sentiment** (Cantonese from LIHKG / Futu Community; Korean from Naver Finance Board and Telegram) with **institutional news flows** (Exa.com neural search with Tavily fallback). Natural language signals are classified via a dual-strategy engine (Gemini 2.5 Flash LLM + localized financial slang lexicons), synchronized to strict UTC hourly market bars with **zero lookahead bias**, fused with tri-method Support/Resistance levels (Rolling Extremas, Volume-Weighted KDE, and Fibonacci), and predicted using regularized LightGBM evaluated under an **expanding-window walk-forward out-of-sample backtest**.
+### Core Capabilities:
+1. **Alternative Data Ingestion**: Gathers live retail discussion boards (Apify scrapers for HKEX LIHKG / Futu and KRX Naver Stock Discussion / Telegram) and institutional news flows (Exa neural search with Tavily fallback).
+2. **Quant NLP & Point-in-Time Alignment**: Multi-factor sentiment classification combining **Gemini 2.5 Flash** with localized financial slang lexicons (Cantonese & Korean), normalized via logarithmic social engagement curves and synchronized with strict **zero lookahead bias** $(t_{\text{prev}} < \text{timestamp} \le t_{\text{start}})$.
+3. **Tri-Method Support & Resistance Synthesis**: Derives actionable price barriers by intersecting **Rolling Pivot Extrema**, **Volume-Weighted Kernel Density Estimation (KDE)**, and **Fibonacci Retracements**, guaranteeing strictly ordered levels:
+   $$S_2 < S_1 < P_{\text{current}} < R_1 < R_2$$
+4. **Predictive Machine Learning**: Regularized LightGBM dual-model ensemble (Classifier + Regressor) evaluated under an **expanding-window walk-forward out-of-sample backtest** that reflects true chronological execution after deducting exchange transaction fees and slippage (10–15 bps).
+
+---
+
+## 2. System Architecture
 
 ```mermaid
 flowchart TD
@@ -58,90 +69,104 @@ flowchart TD
 
 ---
 
-## 2. Target Assets (HKEX & KRX)
+## 3. Quickstart & Reproduction Guide
 
-The pipeline monitors 10 blue-chip constituents with automated query expansion for regional slang, cashtags, and native tickers:
+### Prerequisites
+* Python 3.10, 3.11, or 3.12
+* Terminal / Command Prompt / PowerShell
 
-| Exchange | Ticker | Company Name | Cashtags | Regional Keywords / Slang |
-| :--- | :--- | :--- | :--- | :--- |
-| **HKEX** | `0700.HK` | Tencent Holdings | `$0700`, `$TCEHY` | 騰訊, 鵝廠, 企鵝 |
-| **HKEX** | `9988.HK` | Alibaba Group | `$9988`, `$BABA` | 阿里巴巴, 阿里, 巴巴 |
-| **HKEX** | `3690.HK` | Meituan | `$3690`, `$MPNGF` | 美團, 外賣 |
-| **HKEX** | `1810.HK` | Xiaomi Corp | `$1810`, `$XIACY` | 小米, 雷軍 |
-| **HKEX** | `1211.HK` | BYD Company | `$1211`, `$BYDDY` | 比亞迪, 電車 |
-| **KRX** | `005930.KS`| Samsung Electronics| `$005930` | 삼성전자, 삼전, 십만전자 |
-| **KRX** | `000660.KS`| SK Hynix | `$000660` | SK하이닉스, 하이닉스 |
-| **KRX** | `035420.KS`| NAVER Corp | `$035420` | 네이버 |
-| **KRX** | `035720.KS`| Kakao Corp | `$035720` | 카카오 |
-| **KRX** | `373220.KS`| LG Energy Solution | `$373220` | LG에너지솔루션, 엔솔 |
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/hengseng-sentiment-agent.git
+cd hengseng-sentiment-agent
 
----
+# 2. Create and activate a virtual environment
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
+source venv/bin/activate
 
-## 3. Apify & Exa Reproduction Details
+# 3. Install production dependencies
+pip install -r requirements.txt
 
-As requested in the assessment submission requirements, reviewers can fully reproduce this pipeline using live APIs or zero-credit offline mode:
+# 4. Configure environment credentials
+cp .env.example .env
+# Edit .env and supply your API keys (or leave defaults for offline mock mode)
+```
 
-### Apify Actor IDs
-Configured in `config/settings.yaml`:
-* **Forum Scraper (LIHKG & Naver Finance)**: `apify/cheerio-scraper`
-* **Web Scraper (Futu / General Community)**: `apify/web-scraper`
-* **Telegram Scraper (Financial Alerts)**: `apify/telegram-scraper`
+### Execution Commands:
 
-### News Retrieval (Exa & Tavily)
-* **Primary**: Exa neural semantic search (`exa-py`) bounded by `start_published_date` over the 10-day lookback window.
-* **Secondary / Fallback**: Tavily search API (`tavily-python`) automatically triggers if `EXA_API_KEY` is unavailable.
+* **Run the automated test suite (20 unit tests across all layers)**:
+  ```bash
+  pytest
+  # or
+  python -m pytest tests/ -v
+  ```
 
-### Zero-Credit Offline Reproduction Mode
-To ensure the pipeline can be evaluated even if API tokens expire or rate limits are reached, setting `USE_MOCK_DATA=true` in `.env` activates high-fidelity synthetic data generators reflecting authentic Cantonese and Korean financial discussions.
+* **Execute the full production pipeline across all 10 assets**:
+  ```bash
+  python main.py
+  ```
 
----
-
-## 4. Key Quantitative & Engineering Innovations
-
-### A. Point-in-Time Correctness & Zero Lookahead Bias
-For any hourly price bar $B_t$ starting at $t_{\text{start}}$, all social and news items are filtered strictly by:
-$$t_{\text{prev\_bar\_start}} < \text{timestamp}_i \le t_{\text{start}}$$
-Future items are strictly quarantined, ensuring true out-of-sample causal validity.
-
-### B. Engagement-Weighted Sentiment
-Raw counts fail to capture viral market impact. Posts are weighted using a logarithmic engagement curve:
-$$w = \ln(1 + \text{views}) \times (1 + 0.5 \times \text{likes} + 0.5 \times \text{reposts}) \times \ln(10 + \text{followers})$$
-
-### C. Tri-Method Support & Resistance Synthesis
-To avoid arbitrary static lines, $S_1, S_2, R_1, R_2$ are algorithmically synthesized from:
-1. **Rolling Pivot Extrema**: Local peaks ($H$) and troughs ($-L$) via `scipy.signal.find_peaks`.
-2. **Volume-Weighted Kernel Density Estimation (KDE)**: High-density liquidity consolidation nodes via `scipy.stats.gaussian_kde` weighted by trade volume.
-3. **Fibonacci Retracements**: 0.236, 0.382, 0.500, 0.618, and 0.786 retracement levels across the 10-day range.
-*Guaranteed ordering*: $S_2 < S_1 < P_{\text{current}} < R_1 < R_2$.
-
-### D. Regional Market Microstructure
-* **HKEX**: Monitors spot distance to Callable Bull/Bear Contract (CBBC 牛熊證) knock-out barrier clusters near $S_1$ and $R_1$, anticipating market maker delta-hedging liquidity sweeps.
-* **KRX**: Tracks rolling Z-scores of Naver discussion volume ($\text{mention\_zscore}$) to identify retail FOMO spikes ($Z > +1.8$) or panic capitulation exhaustion.
+* **Execute on specific assets or custom lookback periods**:
+  ```bash
+  # Run on Tencent (HKEX) and Samsung Electronics (KRX) with a 10-day lookback:
+  python main.py --tickers 0700.HK,005930.KS --days 10
+  ```
 
 ---
 
-## 5. Master Quantitative Scorecard
+## 4. Apify & Exa Reproduction Details
 
-*Current Market Regime across all 10 assets:*
+For comprehensive verification by CrowdWisdomTrading reviewers, the data ingestion layer supports both live authenticated collection and zero-credit deterministic offline reproduction.
 
-| Ticker | Asset Name | Market | Current Price | Sentiment Score & Label | Direction | Pred Price ($n+1$) | Win Prob | Action | $S_1$ / $S_2$ | $R_1$ / $R_2$ | Risk:Reward |
+### A. Apify Actors Configured
+Defined in `config/settings.yaml`:
+* **Forum Scraper**: `apify/cheerio-scraper` (targets LIHKG threads and Naver Finance stock discussion boards).
+* **Web Scraper**: `apify/web-scraper` (scrapes Futubull / Futu Community and financial media).
+* **Telegram Scraper**: `apify/telegram-scraper` (monitors regional algorithmic signal channels).
+
+### B. News Retrieval (Exa.com & Tavily Fallback)
+* **Primary Engine**: `exa-py` executing neural search with date bounds (`start_published_date`) spanning the 10-day lookback.
+* **Secondary Fallback**: `tavily-python` activates automatically if `EXA_API_KEY` is not detected, exhausted, or encounters network exceptions.
+
+### C. Zero-Credit Offline Mock Fallback Mode
+* In `.env`, setting `USE_MOCK_DATA=true` (or when API tokens are empty) activates a built-in multilingual data generator.
+* Synthesizes realistic Traditional Chinese / Cantonese discussions (HKEX) and Korean market conversations (KRX) with authentic engagement metrics across the 10-day timeline.
+
+---
+
+## 5. 10-Asset Master Quantitative Scorecard
+
+*Current Market Regime across all 10 monitored assets:*
+
+| Ticker | Asset Name | Exchange | Current Price | Sentiment Score & Label | Direction | Pred Price ($n+1$) | Win Prob | Action | $S_1$ / $S_2$ | $R_1$ / $R_2$ | Risk:Reward |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **0700.HK** | Tencent Holdings | HKEX | HK$ 407.15 | `+0.834` (EXTREMELY BULLISH) | **BULLISH** | **HK$ 407.78** | 73.6% | `LONG` | 404.27 / 400.46 | 411.47 / 417.24 | 0.75x |
 | **9988.HK** | Alibaba Group | HKEX | HK$ 87.44 | `+0.000` (NEUTRAL) | **BEARISH** | **HK$ 87.42** | 35.2% | `SHORT` | 86.91 / 85.37 | 87.86 / 88.64 | 0.55x |
 | **3690.HK** | Meituan | HKEX | HK$ 153.74 | `+0.000` (NEUTRAL) | **BULLISH** | **HK$ 154.08** | 76.2% | `LONG` | 152.42 / 150.24 | 154.54 / 156.86 | 0.36x |
-| **1810.HK** | Xiaomi | HKEX | HK$ 29.04 | `+0.000` (NEUTRAL) | **BEARISH** | **HK$ 29.12** | 68.0% | `SHORT` | 28.80 / 28.62 | 29.40 / 29.79 | 0.43x |
-| **1211.HK** | BYD | HKEX | HK$ 256.09 | `+0.000` (NEUTRAL) | **BULLISH** | **HK$ 256.06** | 55.2% | `LONG` | 253.25 / 250.21 | 258.20 / 260.02 | 0.48x |
+| **1810.HK** | Xiaomi Corp | HKEX | HK$ 29.04 | `+0.000` (NEUTRAL) | **BEARISH** | **HK$ 29.12** | 68.0% | `SHORT` | 28.80 / 28.62 | 29.40 / 29.79 | 0.43x |
+| **1211.HK** | BYD Company | HKEX | HK$ 256.09 | `+0.000` (NEUTRAL) | **BULLISH** | **HK$ 256.06** | 55.2% | `LONG` | 253.25 / 250.21 | 258.20 / 260.02 | 0.48x |
 | **005930.KS** | Samsung Electronics | KRX | ₩ 58,196 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 58,206** | 77.9% | `LONG` | 57970 / 57675 | 58752 / 59494 | 0.93x |
 | **000660.KS** | SK Hynix | KRX | ₩ 182,891 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 183,238** | 46.0% | `LONG` | 181764 / 179034 | 183208 / 185443 | 0.14x |
-| **035420.KS** | NAVER | KRX | ₩ 178,719 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 178,654** | 56.5% | `LONG` | 176996 / 176010 | 179132 / 180187 | 0.16x |
-| **035720.KS** | Kakao | KRX | ₩ 36,748 | `+0.000` (NEUTRAL) | **BEARISH** | **₩ 36,734** | 56.1% | `SHORT` | 36512 / 36063 | 37294 / 37639 | 0.31x |
+| **035420.KS** | NAVER Corp | KRX | ₩ 178,719 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 178,654** | 56.5% | `LONG` | 176996 / 176010 | 179132 / 180187 | 0.16x |
+| **035720.KS** | Kakao Corp | KRX | ₩ 36,748 | `+0.000` (NEUTRAL) | **BEARISH** | **₩ 36,734** | 56.1% | `SHORT` | 36512 / 36063 | 37294 / 37639 | 0.31x |
 | **373220.KS** | LG Energy Solution | KRX | ₩ 320,629 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 319,690** | 30.9% | `LONG` | 319277 / 317126 | 321381 / 323944 | 0.24x |
 
 ---
 
-## 6. Out-of-Sample Walk-Forward Validation Results
+## 6. Out-of-Sample Walk-Forward Validation Methodology
 
-*Expanding-Window Walk-Forward Validation across the 10-day hourly timeframe (initial 55% train window, 10% test increments, zero future leakage, net of 10–15 bps transaction costs):*
+Standard cross-validation (e.g. k-fold or random shuffle) is invalid in financial time-series due to serial correlation and lookahead leakage. 
+
+We implement **Expanding-Window Walk-Forward Validation**:
+* **Initial Window**: Model trains strictly on the first 55% of chronological hourly bars.
+* **Test Step**: Evaluates the subsequent 10% slice strictly out-of-sample.
+* **Window Expansion**: Train slice expands sequentially by 10%, repeating until all historical bars are evaluated.
+* **Transaction Fee Modeling**: Deducts 10 bps for HKEX and 15 bps for KRX, plus 5 bps slippage per trade turnover.
+
+### Out-of-Sample Empirical Results:
 
 | Ticker | OOS Bars | Directional Hit Rate (%) | Info Coeff ($IC$) | Price MAE | Price RMSE | Net Strategy Return | Benchmark Return | Alpha Spread | Annualized Sharpe | Max Drawdown |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -158,84 +183,103 @@ To avoid arbitrary static lines, $S_1, S_2, R_1, R_2$ are algorithmically synthe
 
 ---
 
-## 7. Interactive Visual Dashboards
+## 7. Market Microstructure Dynamics
 
-The reporting engine generates standalone, high-resolution Plotly HTML dashboards for every monitored ticker under `reports/`:
-* **Panel 1**: Price Candlesticks with $S_1, S_2, R_1, R_2$ horizontal rays.
-* **Panel 2**: Hourly Social Mention Volume colored by Sentiment Score.
-* **Panel 3**: Technical Momentum (MACD histogram & RSI 14).
-* **Panel 4**: Out-of-Sample Strategy Cumulative Return vs. Buy & Hold Benchmark.
+### A. Hong Kong CBBC (Callable Bull/Bear Contracts 牛熊證) Knock-Out Zones
+* In HKEX equities, structured derivative products (CBBCs) represent immense retail leverage.
+* When spot price approaches key support ($S_1$) or resistance ($R_1$) within 1.5–1.8%, market makers dynamically delta-hedge by dumping/buying underlying stock, triggering knock-out cascades.
+* The agent detects and flags proximity to these knock-out cascades (e.g. `0700.HK` near $S_1 = 404.27$).
 
-Access the generated interactive HTML dashboards:
-* [`reports/0700_HK_dashboard.html`](reports/0700_HK_dashboard.html) — Tencent Holdings
-* [`reports/9988_HK_dashboard.html`](reports/9988_HK_dashboard.html) — Alibaba Group
-* [`reports/3690_HK_dashboard.html`](reports/3690_HK_dashboard.html) — Meituan
-* [`reports/1810_HK_dashboard.html`](reports/1810_HK_dashboard.html) — Xiaomi Corp
-* [`reports/1211_HK_dashboard.html`](reports/1211_HK_dashboard.html) — BYD Company
-* [`reports/005930_KS_dashboard.html`](reports/005930_KS_dashboard.html) — Samsung Electronics
-* [`reports/000660_KS_dashboard.html`](reports/000660_KS_dashboard.html) — SK Hynix
-* [`reports/035420_KS_dashboard.html`](reports/035420_KS_dashboard.html) — NAVER Corp
-* [`reports/035720_KS_dashboard.html`](reports/035720_KS_dashboard.html) — Kakao Corp
-* [`reports/373220_KS_dashboard.html`](reports/373220_KS_dashboard.html) — LG Energy Solution
+### B. South Korea Naver Discussion Board Mention Velocity ($Z$-Score)
+* In the KRX market, retail sentiment on Naver Finance Stock Discussion Boards (종목토론실) frequently leads rapid sentiment herding.
+* The agent calculates rolling 10-bar $Z$-scores of post velocity:
+  $$\text{Z-score} = \frac{\text{Mentions}_t - \mu_{10}}{\sigma_{10} + \epsilon}$$
+* Identifies retail FOMO spikes ($Z > +1.8$) anticipating momentum reversals or panic capitulation exhaustion near support.
 
 ---
 
-## 8. Installation & Quickstart
+## 8. Interactive Plotly Dashboards
 
-### Prerequisites
-* Python 3.10 or higher
-* Valid API keys for Apify, Exa (or Tavily), and Gemini (for live LLM scoring)
+The pipeline generates publication-ready interactive HTML dashboards under `reports/`. Each dashboard contains 4 synchronized subplots:
+1. **OHLCV Candlestick Chart** with $S_1, S_2, R_1, R_2$ price levels and predicted $n+1$ target marker.
+2. **Quant Sentiment Dynamics** showing Retail Weighted Sentiment bars, Institutional News line, and Divergence.
+3. **Technical Momentum** plotting MACD line, Signal line, MACD Histogram, and RSI 14.
+4. **Out-of-Sample Walk-Forward Backtest Equity Curve** tracking Strategy vs. Buy & Hold benchmark.
+
+### Direct Links to Generated Dashboards:
+* [Tencent Holdings (`0700.HK`) Dashboard](reports/0700_HK_dashboard.html)
+* [Alibaba Group (`9988.HK`) Dashboard](reports/9988_HK_dashboard.html)
+* [Meituan (`3690.HK`) Dashboard](reports/3690_HK_dashboard.html)
+* [Xiaomi Corp (`1810.HK`) Dashboard](reports/1810_HK_dashboard.html)
+* [BYD Company (`1211.HK`) Dashboard](reports/1211_HK_dashboard.html)
+* [Samsung Electronics (`005930.KS`) Dashboard](reports/005930_KS_dashboard.html)
+* [SK Hynix (`000660.KS`) Dashboard](reports/000660_KS_dashboard.html)
+* [NAVER Corp (`035420.KS`) Dashboard](reports/035420_KS_dashboard.html)
+* [Kakao Corp (`035720.KS`) Dashboard](reports/035720_KS_dashboard.html)
+* [LG Energy Solution (`373220.KS`) Dashboard](reports/373220_KS_dashboard.html)
+
+---
+
+## 9. Test Suite Verification
+
+The codebase includes comprehensive unit tests verifying data contracts, math bounds, and pipeline resilience across 5 test modules:
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/your-username/hengseng-sentiment-agent.git
-cd hengseng-sentiment-agent
+python -m pytest tests/ -v
+```
 
-# 2. Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+### Test Results:
+```text
+tests/test_ingestion.py::TestMarketDataFetcher::test_fetch_bars_hkex PASSED           [  5%]
+tests/test_ingestion.py::TestMarketDataFetcher::test_fetch_bars_krx PASSED            [ 10%]
+tests/test_ingestion.py::TestExaNewsCollector::test_news_structure_and_fallback PASSED [ 15%]
+tests/test_ingestion.py::TestApifySocialCollector::test_social_posts_hkex_mock_and_structure PASSED [ 20%]
+tests/test_ingestion.py::TestApifySocialCollector::test_social_posts_krx_mock_and_structure PASSED [ 25%]
+tests/test_models.py::TestPriceDirectionPredictor::test_feature_matrix_and_target_construction PASSED [ 30%]
+tests/test_models.py::TestPriceDirectionPredictor::test_fit_and_predict_n_plus_1 PASSED [ 35%]
+tests/test_models.py::TestWalkForwardValidator::test_walk_forward_execution_and_metrics PASSED [ 40%]
+tests/test_processing.py::TestMultilingualSentimentEngine::test_cantonese_bullish_scoring PASSED [ 45%]
+tests/test_processing.py::TestMultilingualSentimentEngine::test_cantonese_bearish_bagholding_scoring PASSED [ 50%]
+tests/test_processing.py::TestMultilingualSentimentEngine::test_korean_bullish_scoring PASSED [ 55%]
+tests/test_processing.py::TestMultilingualSentimentEngine::test_korean_bearish_bagholding_scoring PASSED [ 60%]
+tests/test_processing.py::TestMultilingualSentimentEngine::test_engagement_weighting_sanity PASSED [ 65%]
+tests/test_processing.py::TestTimeSeriesAligner::test_zero_lookahead_alignment PASSED [ 70%]
+tests/test_reporting.py::TestReporting::test_visualizer_creates_html_dashboard PASSED [ 75%]
+tests/test_reporting.py::TestReporting::test_report_generator_markdown_output PASSED [ 80%]
+tests/test_technicals.py::TestTechnicalAnalyzer::test_indicator_calculations PASSED  [ 85%]
+tests/test_technicals.py::TestTechnicalAnalyzer::test_support_resistance_ordering PASSED [ 90%]
+tests/test_technicals.py::TestTechnicalAnalyzer::test_profile_generation_structure PASSED [ 95%]
+tests/test_technicals.py::TestTechnicalAnalyzer::test_krx_profile_microstructure PASSED [100%]
 
-# 3. Install production dependencies
-pip install -r requirements.txt
-
-# 4. Configure environment credentials
-cp .env.example .env
-# Edit .env with your APIFY_API_TOKEN, EXA_API_KEY, TAVILY_API_KEY, GEMINI_API_KEY
-
-# 5. Run the complete test suite (20 tests)
-pytest
-
-# 6. Execute full production pipeline on all 10 assets
-python main.py
-
-# 7. Run on specific subset of assets
-python main.py --tickers 0700.HK,005930.KS --days 10
+============================= 20 passed in 8.94s =============================
 ```
 
 ---
 
-## 9. Repository Structure
+## 10. Repository File Structure
 
 ```text
 hengseng-sentiment-agent/
-├── .env.example               # Template for required API keys
-├── .gitignore                 # Strict isolation of .env and binary caches
+├── .env.example               # Template for required API credentials
+├── .gitignore                 # Strict protection of .env and binary caches
+├── README.md                  # Institutional documentation and reproduction guide
 ├── requirements.txt           # Production dependencies
 ├── main.py                    # Production pipeline CLI runner
 ├── config/
-│   └── settings.yaml          # Asset universe, cashtags, keywords, and Apify actors
+│   └── settings.yaml          # 10 target assets, cashtags, keywords, and Apify actors
 ├── src/
 │   ├── ingestion/
 │   │   ├── market_data.py     # yfinance 1h OHLCV bars with strict UTC normalization
 │   │   ├── exa_collector.py   # Exa neural news search with Tavily fallback
-│   │   └── apify_collector.py # Apify social forum scraper (LIHKG, Naver, Futu, Telegram)
+│   │   └── apify_collector.py # Apify social scraper (LIHKG, Futu, Naver, Telegram)
 │   ├── processing/
 │   │   ├── sentiment_engine.py# Gemini 2.5 Flash + Cantonese & Korean financial lexicons
 │   │   ├── aligner.py         # Zero-lookahead time-series alignment engine
 │   │   └── technicals.py      # Tri-method S/R engine, ATR sizing, and microstructure
 │   ├── models/
 │   │   ├── predictor.py       # Regularized LightGBM & Baseline n+1 predictor
-│   │   └── validation.py      # Expanding-window out-of-sample walk-forward validator
+│   │   ├── validation.py      # Expanding-window out-of-sample walk-forward validator
+│   │   └── backtester.py      # Event-driven backtester with transaction costs
 │   └── reporting/
 │       ├── visualizer.py      # Standalone Plotly 4-panel HTML dashboard generator
 │       └── report_generator.py# Executive Markdown research dossier generator
@@ -252,5 +296,9 @@ hengseng-sentiment-agent/
 
 ---
 
-## 10. License
-This project is developed under the MIT License for the CrowdWisdomTrading AI Agents Developer Internship Assessment.
+## 11. Author & Submission
+
+* **Project**: Hang Seng & KRX Sentiment Price Prediction Agent
+* **Internship Assessment**: CrowdWisdomTrading
+* **Submission Recipient**: `gilad@crowdwisdomtrading.com`
+* **License**: MIT
