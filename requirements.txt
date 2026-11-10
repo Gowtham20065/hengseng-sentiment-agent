@@ -1,0 +1,15 @@
+apify-client
+exa-py
+tavily-python
+google-genai
+yfinance
+pandas
+numpy
+scipy
+scikit-learn
+lightgbm
+plotly
+pyyaml
+python-dotenv
+pytest
+

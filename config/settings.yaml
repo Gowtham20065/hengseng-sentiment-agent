@@ -1,0 +1,90 @@
+# Target Asset Configuration for Hang Seng (HKEX) and KRX
+assets:
+  hkex:
+    - ticker: "0700.HK"
+      name: "Tencent Holdings"
+      cashtags:
+        - "$0700"
+        - "$TCEHY"
+      keywords:
+        - "騰訊"
+        - "鵝廠"
+        - "企鵝"
+    - ticker: "9988.HK"
+      name: "Alibaba Group"
+      cashtags:
+        - "$9988"
+        - "$BABA"
+      keywords:
+        - "阿里巴巴"
+        - "阿里"
+        - "巴巴"
+    - ticker: "3690.HK"
+      name: "Meituan"
+      cashtags:
+        - "$3690"
+        - "$MPNGF"
+      keywords:
+        - "美團"
+        - "外賣"
+    - ticker: "1810.HK"
+      name: "Xiaomi"
+      cashtags:
+        - "$1810"
+        - "$XIACY"
+      keywords:
+        - "小米"
+        - "雷軍"
+    - ticker: "1211.HK"
+      name: "BYD"
+      cashtags:
+        - "$1211"
+        - "$BYDDY"
+      keywords:
+        - "比亞迪"
+        - "電車"
+
+  krx:
+    - ticker: "005930.KS"
+      name: "Samsung Electronics"
+      cashtags:
+        - "$005930"
+      keywords:
+        - "삼성전자"
+        - "삼전"
+        - "십만전자"
+    - ticker: "000660.KS"
+      name: "SK Hynix"
+      cashtags:
+        - "$000660"
+      keywords:
+        - "SK하이닉스"
+        - "하이닉스"
+    - ticker: "035420.KS"
+      name: "NAVER"
+      cashtags:
+        - "$035420"
+      keywords:
+        - "네이버"
+    - ticker: "035720.KS"
+      name: "Kakao"
+      cashtags:
+        - "$035720"
+      keywords:
+        - "카카오"
+    - ticker: "373220.KS"
+      name: "LG Energy Solution"
+      cashtags:
+        - "$373220"
+      keywords:
+        - "LG에너지솔루션"
+        - "엔솔"
+
+parameters:
+  lookback_days: 10
+  bar_interval: "1h"
+  apify_actors:
+    forum_scraper: "apify/cheerio-scraper"
+    web_scraper: "apify/web-scraper"
+    telegram_scraper: "apify/telegram-scraper"
+
