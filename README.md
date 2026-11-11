@@ -77,7 +77,7 @@ flowchart TD
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/hengseng-sentiment-agent.git
+git clone https://github.com/Gowtham20065/hengseng-sentiment-agent.git
 cd hengseng-sentiment-agent
 
 # 2. Create and activate a virtual environment
