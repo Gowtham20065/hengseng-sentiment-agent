@@ -139,20 +139,28 @@ Defined in `config/settings.yaml`:
 
 ## 5. 10-Asset Master Quantitative Scorecard
 
-*Current Market Regime across all 10 monitored assets:*
+*Current Market Regime across all 10 monitored assets (Ranked by Social Volume & Sentiment per Exchange):*
 
-| Ticker | Asset Name | Exchange | Current Price | Sentiment Score & Label | Direction | Pred Price ($n+1$) | Win Prob | Action | $S_1$ / $S_2$ | $R_1$ / $R_2$ | Risk:Reward |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **0700.HK** | Tencent Holdings | HKEX | HK$ 407.15 | `+0.834` (EXTREMELY BULLISH) | **BULLISH** | **HK$ 407.78** | 73.6% | `LONG` | 404.27 / 400.46 | 411.47 / 417.24 | 0.75x |
-| **9988.HK** | Alibaba Group | HKEX | HK$ 87.44 | `+0.000` (NEUTRAL) | **BEARISH** | **HK$ 87.42** | 35.2% | `SHORT` | 86.91 / 85.37 | 87.86 / 88.64 | 0.55x |
-| **3690.HK** | Meituan | HKEX | HK$ 153.74 | `+0.000` (NEUTRAL) | **BULLISH** | **HK$ 154.08** | 76.2% | `LONG` | 152.42 / 150.24 | 154.54 / 156.86 | 0.36x |
-| **1810.HK** | Xiaomi Corp | HKEX | HK$ 29.04 | `+0.000` (NEUTRAL) | **BEARISH** | **HK$ 29.12** | 68.0% | `SHORT` | 28.80 / 28.62 | 29.40 / 29.79 | 0.43x |
-| **1211.HK** | BYD Company | HKEX | HK$ 256.09 | `+0.000` (NEUTRAL) | **BULLISH** | **HK$ 256.06** | 55.2% | `LONG` | 253.25 / 250.21 | 258.20 / 260.02 | 0.48x |
-| **005930.KS** | Samsung Electronics | KRX | ₩ 58,196 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 58,206** | 77.9% | `LONG` | 57970 / 57675 | 58752 / 59494 | 0.93x |
-| **000660.KS** | SK Hynix | KRX | ₩ 182,891 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 183,238** | 46.0% | `LONG` | 181764 / 179034 | 183208 / 185443 | 0.14x |
-| **035420.KS** | NAVER Corp | KRX | ₩ 178,719 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 178,654** | 56.5% | `LONG` | 176996 / 176010 | 179132 / 180187 | 0.16x |
-| **035720.KS** | Kakao Corp | KRX | ₩ 36,748 | `+0.000` (NEUTRAL) | **BEARISH** | **₩ 36,734** | 56.1% | `SHORT` | 36512 / 36063 | 37294 / 37639 | 0.31x |
-| **373220.KS** | LG Energy Solution | KRX | ₩ 320,629 | `+0.000` (NEUTRAL) | **BULLISH** | **₩ 319,690** | 30.9% | `LONG` | 319277 / 317126 | 321381 / 323944 | 0.24x |
+### HKEX Equities (Hong Kong)
+| Rank | Ticker | Asset Name | Current Price | Sentiment Score & Label | Direction | Pred Price ($n+1$) | Win Prob | Action | $S_1$ / $S_2$ | $R_1$ / $R_2$ | Risk:Reward |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | **9988.HK** | Alibaba Group | HK$ 87.44 | `+0.380` (BULLISH) | **BEARISH** | **HK$ 87.42** | 40.9% | `SHORT` | 86.91 / 85.37 | 87.86 / 88.64 | 0.49x |
+| 2 | **1211.HK** | BYD Company | HK$ 256.09 | `+0.664` (EXTREMELY BULLISH) | **BULLISH** | **HK$ 255.86** | 52.1% | `LONG` | 253.25 / 250.21 | 258.20 / 260.02 | 0.44x |
+| 3 | **3690.HK** | Meituan | HK$ 153.74 | `+0.380` (BULLISH) | **BULLISH** | **HK$ 154.01** | 77.7% | `LONG` | 152.42 / 150.24 | 154.54 / 156.86 | 0.32x |
+| 4 | **1810.HK** | Xiaomi Corp | HK$ 29.04 | `+0.299` (BULLISH) | **BULLISH** | **HK$ 29.13** | 66.7% | `LONG` | 28.80 / 28.62 | 29.40 / 29.79 | 0.78x |
+| 5 | **0700.HK** | Tencent Holdings | HK$ 407.15 | `+0.834` (EXTREMELY BULLISH) | **BULLISH** | **HK$ 407.68** | 74.4% | `LONG` | 404.27 / 400.46 | 411.47 / 417.24 | 0.73x |
+
+### KRX Equities (South Korea)
+| Rank | Ticker | Asset Name | Current Price | Sentiment Score & Label | Direction | Pred Price ($n+1$) | Win Prob | Action | $S_1$ / $S_2$ | $R_1$ / $R_2$ | Risk:Reward |
+| :---: | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | **000660.KS** | SK Hynix | ₩ 182,891 | `+0.664` (EXTREMELY BULLISH) | **BULLISH** | **₩ 183,014** | 44.3% | `LONG` | 181764 / 179034 | 183208 / 185443 | 0.13x |
+| 2 | **035420.KS** | NAVER Corp | ₩ 178,719 | `+0.380` (BULLISH) | **BULLISH** | **₩ 178,679** | 57.5% | `LONG` | 176996 / 176010 | 179132 / 180187 | 0.13x |
+| 3 | **373220.KS** | LG Energy Solution | ₩ 320,629 | `+0.380` (BULLISH) | **BEARISH** | **₩ 319,634** | 31.4% | `SHORT` | 319277 / 317126 | 321381 / 323944 | 0.43x |
+| 4 | **035720.KS** | Kakao Corp | ₩ 36,748 | `-0.013` (NEUTRAL) | **BULLISH** | **₩ 36,751** | 61.5% | `LONG` | 36512 / 36063 | 37294 / 37639 | 1.07x |
+| 5 | **005930.KS** | Samsung Electronics | ₩ 58,196 | `+0.424` (BULLISH) | **BULLISH** | **₩ 58,199** | 78.7% | `LONG` | 57970 / 57675 | 58752 / 59494 | 0.84x |
+
+> **Interactive Cross-Market Dashboard:**  
+> An aggregated comparative visual report is generated at [`reports/exchange_summary_dashboard.html`](reports/exchange_summary_dashboard.html), featuring 4 interactive panels ranking mention velocities, sentiment distributions, model return forecasts, and S/R channel spreads.
 
 ---
 
@@ -169,18 +177,21 @@ We implement **Expanding-Window Walk-Forward Validation**:
 ### Out-of-Sample Empirical Results:
 
 | Ticker | OOS Bars | Directional Hit Rate (%) | Info Coeff ($IC$) | Price MAE | Price RMSE | Net Strategy Return | Benchmark Return | Alpha Spread | Annualized Sharpe | Max Drawdown |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **0700.HK** | 5 | **60.0%** | `+0.200` | 3.93 | 4.86 | +0.67% | +3.43% | -2.76% | **5.71** | 1.69% |
-| **9988.HK** | 19 | **47.4%** | `+0.325` | 0.65 | 0.80 | +1.92% | -1.07% | **+2.99%** | **4.93** | 2.00% |
-| **3690.HK** | 19 | **52.6%** | `+0.193` | 1.05 | 1.34 | 0.00% | +3.31% | -3.31% | **0.19** | 4.99% |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **0700.HK** | 5 | **40.0%** | `+0.200` | 3.93 | 4.86 | -0.77% | +3.43% | -4.20% | -5.72 | 1.69% |
+| **9988.HK** | 19 | **36.8%** | `+0.325` | 0.65 | 0.80 | -3.31% | -1.07% | -2.24% | -7.70 | 3.31% |
+| **3690.HK** | 19 | **42.1%** | `+0.193` | 1.05 | 1.34 | -3.93% | +3.31% | -7.24% | -10.17 | 4.99% |
 | **1810.HK** | 19 | **42.1%** | `+0.372` | 0.19 | 0.23 | +0.47% | +0.62% | -0.15% | **1.35** | 3.25% |
-| **1211.HK** | 19 | **42.1%** | `-0.037` | 2.12 | 2.80 | -5.54% | -3.51% | -2.03% | -11.83 | 7.04% |
+| **1211.HK** | 19 | **42.1%** | `-0.037` | 2.12 | 2.80 | -5.62% | -3.51% | -2.11% | -12.36 | 7.04% |
 | **005930.KS** | 6 | **100.0%** | `+0.143` | 317.33 | 449.06 | +2.02% | +2.44% | -0.42% | **25.25** | 0.25% |
-| **000660.KS** | 22 | **45.5%** | `+0.048` | 1405.09 | 1679.58 | -2.53% | +0.05% | -2.58% | -5.43 | 3.55% |
-| **035420.KS** | 22 | **54.5%** | `+0.381` | 680.09 | 941.78 | -0.32% | +1.66% | -1.98% | -0.80 | 2.94% |
-| **035720.KS** | 22 | **31.8%** | `-0.093` | 273.91 | 321.89 | -7.95% | -6.95% | -1.00% | -19.66 | 7.95% |
-| **373220.KS** | 22 | **63.6%** | `+0.287` | 2051.50 | 2476.43 | +2.38% | +0.69% | **+1.69%** | **5.59** | 4.78% |
+| **000660.KS** | 22 | **40.9%** | `+0.048` | 1405.09 | 1679.58 | -0.10% | +0.05% | -0.15% | -0.03 | 3.55% |
+| **035420.KS** | 22 | **63.6%** | `+0.381` | 680.09 | 941.78 | +1.38% | +1.66% | -0.28% | **4.27** | 2.94% |
+| **035720.KS** | 22 | **27.3%** | `-0.093` | 273.91 | 321.89 | -6.75% | -6.95% | **+0.20%** | -16.65 | 7.95% |
+| **373220.KS** | 22 | **63.6%** | `+0.287` | 2051.50 | 2476.43 | +4.32% | +0.69% | **+3.63%** | **10.57** | 4.78% |
 
+> [!NOTE]
+> **Statistical Significance & Small Sample Caveat ($N < 30$):**
+> Annualized Sharpe ratios on short 10-day hourly horizons (e.g. 5–22 out-of-sample test bars) exhibit high small-sample variance. For example, `005930.KS` registered 6 consecutive directional wins with negligible downside deviation, mathematically inflating the unadjusted annualized Sharpe to 25.25. In institutional trading desks, Sharpe metrics require $N \ge 30$ bars to establish $t$-statistic statistical significance at $p < 0.05$.
 ---
 
 ## 7. Market Microstructure Dynamics

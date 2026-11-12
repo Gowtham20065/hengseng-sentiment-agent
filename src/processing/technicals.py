@@ -221,11 +221,23 @@ class TechnicalAnalyzer:
         decimals = 0 if curr_p > 1000 else 2
         curr_p = round(curr_p, decimals)
 
-        # Sentiment metrics
-        sent_score = float(latest.get("social_weighted_sentiment", 0.0))
-        news_sent = float(latest.get("news_sentiment", 0.0))
-        divergence = float(latest.get("news_social_divergence", 0.0))
+        # Sentiment metrics: use latest non-zero sentiment from recent bars, or fallback to latest bar
+        non_zero_social = df["social_weighted_sentiment"][df["social_weighted_sentiment"] != 0.0]
+        if not non_zero_social.empty:
+            sent_score = float(non_zero_social.iloc[-1])
+        else:
+            sent_score = float(latest.get("social_weighted_sentiment", 0.0))
+
+        non_zero_news = df["news_sentiment"][df["news_sentiment"] != 0.0]
+        if not non_zero_news.empty:
+            news_sent = float(non_zero_news.iloc[-1])
+        else:
+            news_sent = float(latest.get("news_sentiment", 0.0))
+
+        divergence = round(news_sent - sent_score, 4)
         mention_zscore = float(latest.get("mention_zscore", 0.0))
+        total_mentions = int(df["social_mentions"].sum()) if "social_mentions" in df.columns else 0
+        exchange = "HKEX" if ticker.endswith(".HK") else "KRX"
 
         # Sentiment Label
         if sent_score >= 0.50:
@@ -341,6 +353,8 @@ class TechnicalAnalyzer:
         profile = {
             "ticker": ticker,
             "asset_name": asset_name,
+            "exchange": exchange,
+            "total_mentions": total_mentions,
             "current_price": curr_p,
             "sentiment_score": round(sent_score, 4),
             "sentiment_label": sentiment_label,

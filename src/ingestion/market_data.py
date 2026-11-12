@@ -73,7 +73,7 @@ class MarketDataFetcher:
         try:
             period = f"{max(days, 1)}d"
             yf_ticker = yf.Ticker(ticker)
-            raw = yf_ticker.history(period=period, interval=interval)
+            raw = yf_ticker.history(period=period, interval=interval, timeout=10)
             if raw is not None and not raw.empty:
                 df = raw.copy()
         except Exception:

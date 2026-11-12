@@ -101,14 +101,41 @@ def run_pipeline(
         if len(X) >= 4:
             predictor.fit(X, y_reg, y_clf)
             pred_n1 = predictor.predict_n_plus_1(X.iloc[-1], float(full_df["close"].iloc[-1]))
-            profile.update({
-                "predicted_return_pct": pred_n1["predicted_return_pct"],
-                "predicted_price_n1": pred_n1["predicted_price_n1"],
-                "predicted_direction": pred_n1["predicted_direction"],
-                "win_probability": pred_n1["win_probability"],
-                "top_features": pred_n1["feature_importances"],
-            })
-            print(f"   -> Prediction n+1: {pred_n1['predicted_direction']} (Target: {pred_n1['predicted_price_n1']} | Win Prob: {pred_n1['win_probability']*100:.1f}%)")
+
+            # Reconcile directional signal and trade recommendation with ML prediction
+            ml_dir = pred_n1["predicted_direction"]  # "UP" or "DOWN"
+            aligned_direction = "BULLISH" if ml_dir == "UP" else "BEARISH"
+            profile["direction"] = aligned_direction
+            profile["predicted_direction"] = ml_dir
+            profile["predicted_return_pct"] = pred_n1["predicted_return_pct"]
+            profile["predicted_price_n1"] = pred_n1["predicted_price_n1"]
+            profile["win_probability"] = pred_n1["win_probability"]
+            profile["top_features"] = pred_n1["feature_importances"]
+
+            # Re-align position recommendation with the ML forecast
+            pos_rec = profile.get("position_recommendation", {})
+            curr_p = profile["current_price"]
+            decimals = 0 if curr_p > 1000 else 2
+            atr = float(enriched["atr_14"].iloc[-1]) if "atr_14" in enriched.columns else curr_p * 0.015
+            s1 = profile["support_levels"]["S1"]
+            r1 = profile["resistance_levels"]["R1"]
+
+            if aligned_direction == "BULLISH":
+                pos_rec["action"] = "LONG"
+                pos_rec["stop_loss"] = round(s1 - (0.5 * atr), decimals)
+                pos_rec["take_profit"] = round(max(r1, pred_n1["predicted_price_n1"]), decimals)
+                risk = max(curr_p - pos_rec["stop_loss"], 0.01)
+                reward = max(pos_rec["take_profit"] - curr_p, 0.01)
+                pos_rec["risk_reward_ratio"] = round(reward / risk, 2)
+            else:
+                pos_rec["action"] = "SHORT"
+                pos_rec["stop_loss"] = round(r1 + (0.5 * atr), decimals)
+                pos_rec["take_profit"] = round(min(s1, pred_n1["predicted_price_n1"]), decimals)
+                risk = max(pos_rec["stop_loss"] - curr_p, 0.01)
+                reward = max(curr_p - pos_rec["take_profit"], 0.01)
+                pos_rec["risk_reward_ratio"] = round(reward / risk, 2)
+
+            print(f"   -> Prediction n+1: {pred_n1['predicted_direction']} ({aligned_direction}) (Target: {pred_n1['predicted_price_n1']} | Win Prob: {pred_n1['win_probability']*100:.1f}%)")
 
         # 7. Out-of-Sample Walk-Forward Validation
         try:
@@ -131,11 +158,17 @@ def run_pipeline(
         dashboard_files.append(dashboard_path)
         print(f"   -> Generated Dashboard: {dashboard_path}\n")
 
+    # 8b. Cross-Market Ranked Visual Report
+    summary_dash = visualizer.create_exchange_summary_dashboard(all_profiles)
+    dashboard_files.append(summary_dash)
+    print(f"[OK] Exchange-Level Summary Dashboard: {summary_dash}")
+
     # 9. Comprehensive Assessment Report
     report_file = report_gen.generate_markdown_report(all_profiles, all_validations)
     print(f"================================================================================")
     print(f"  Pipeline Run Finished!")
     print(f"  Master Quant Dossier: {report_file}")
+    print(f"  Exchange Visual Dashboard: {summary_dash}")
     print(f"  Interactive Dashboards: {len(dashboard_files)} HTML files in '{output_dir}/'")
     print(f"================================================================================\n")
 

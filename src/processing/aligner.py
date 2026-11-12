@@ -31,6 +31,7 @@ class TimeSeriesAligner:
         scored_posts: List[Dict[str, Any]],
         scored_news: List[Dict[str, Any]],
         news_decay_hours: int = 24,
+        social_decay_hours: int = 24,
     ) -> pd.DataFrame:
         """Align scored sentiment data with price bars without future information leakage.
 
@@ -39,6 +40,7 @@ class TimeSeriesAligner:
         - scored_posts: List of posts containing 'timestamp', 'sentiment_score', 'direction', 'engagement_weight'.
         - scored_news: List of news containing 'published_date', 'sentiment_score'.
         - news_decay_hours: Lookback window in hours for prevailing news sentiment prior to t_start.
+        - social_decay_hours: Rolling lookback window in hours for exponentially decaying social sentiment.
         """
         if price_df.empty:
             return pd.DataFrame()
@@ -129,9 +131,34 @@ class TimeSeriesAligner:
                     social_bull_ratio[i] = round(float(bull_count / count), 4)
                     social_bear_ratio[i] = round(float(bear_count / count), 4)
                 else:
-                    social_weighted_sentiment[i] = 0.0
-                    social_bull_ratio[i] = 0.0
-                    social_bear_ratio[i] = 0.0
+                    if social_decay_hours > 0:
+                        # Exponential decay memory for sparse social posts (half-life of 12 hours)
+                        lookback_cutoff = t_start - timedelta(hours=social_decay_hours)
+                        recent_mask = (posts_df["timestamp"] > lookback_cutoff) & (posts_df["timestamp"] <= t_start)
+                        recent_posts = posts_df[recent_mask]
+                        if not recent_posts.empty:
+                            time_diff_hours = (t_start - recent_posts["timestamp"]).dt.total_seconds() / 3600.0
+                            recency_weights = np.exp(-time_diff_hours / 12.0)
+                            comb_weights = recent_posts["weight"].values * recency_weights
+                            tot_w = np.sum(comb_weights)
+                            if tot_w > 0:
+                                social_weighted_sentiment[i] = round(
+                                    float(np.sum(recent_posts["sentiment_score"].values * comb_weights) / tot_w), 4
+                                )
+                            else:
+                                social_weighted_sentiment[i] = round(float(recent_posts["sentiment_score"].iloc[-1]), 4)
+                            b_c = np.sum(recent_posts["direction"].values == "BULLISH")
+                            br_c = np.sum(recent_posts["direction"].values == "BEARISH")
+                            social_bull_ratio[i] = round(float(b_c / len(recent_posts)), 4)
+                            social_bear_ratio[i] = round(float(br_c / len(recent_posts)), 4)
+                        else:
+                            social_weighted_sentiment[i] = 0.0
+                            social_bull_ratio[i] = 0.0
+                            social_bear_ratio[i] = 0.0
+                    else:
+                        social_weighted_sentiment[i] = 0.0
+                        social_bull_ratio[i] = 0.0
+                        social_bear_ratio[i] = 0.0
             else:
                 social_mentions[i] = 0
                 social_weighted_sentiment[i] = 0.0

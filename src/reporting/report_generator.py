@@ -46,43 +46,67 @@ class ReportGenerator:
             "rigorous expanding-window out-of-sample walk-forward validation.\n"
         )
 
-        # 2. 10-Asset Master Quantitative Scorecard
-        md.append("## 2. 10-Asset Master Quantitative Scorecard\n")
+        # 2. 10-Asset Master Quantitative Scorecard & Exchange Rankings
+        md.append("## 2. 10-Asset Master Quantitative Scorecard & Exchange Rankings\n")
         md.append(
-            "| Ticker | Asset Name | Current Price | Sentiment | Label | Direction | Pred Price (n+1) | Win Prob | Action | S1 / S2 | R1 / R2 | R:R |\n"
-            "| :--- | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n"
+            "Assets are partitioned by regional exchange and strictly ranked by aggregate social mention velocity followed by "
+            "net weighted sentiment, providing immediate visual transparency into retail crowd interest and prevailing directional bias.\n\n"
         )
 
-        for p in profiles:
-            t = p["ticker"]
-            name = p["asset_name"]
-            curr_p = p["current_price"]
-            sent = p["sentiment_score"]
-            lbl = p["sentiment_label"]
-            dir_str = p["direction"]
-            s_levels = p["support_levels"]
-            r_levels = p["resistance_levels"]
-            pos = p["position_recommendation"]
+        def render_table(asset_profiles: list, start_rank: int = 1) -> list:
+            lines = [
+                "| Rank | Ticker | Asset Name | Mentions | Current Price | Sentiment | Label | Direction | Pred Price (n+1) | Win Prob | Action | S1 / S2 | R1 / R2 | R:R |\n",
+                "| :---: | :--- | :--- | :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |\n",
+            ]
+            for idx, p in enumerate(asset_profiles, start=start_rank):
+                t = p["ticker"]
+                name = p["asset_name"]
+                mentions = p.get("total_mentions", 0)
+                curr_p = p["current_price"]
+                sent = p["sentiment_score"]
+                lbl = p["sentiment_label"]
+                dir_str = p["direction"]
+                s_levels = p["support_levels"]
+                r_levels = p["resistance_levels"]
+                pos = p["position_recommendation"]
 
-            val = val_map.get(t, {})
-            oos_df = val.get("out_of_sample_predictions")
-            pred_p = p.get("predicted_price_n1")
-            if not pred_p and oos_df is not None and not oos_df.empty:
-                pred_p = float(oos_df["predicted_price"].iloc[-1])
-            if not pred_p:
-                pred_p = curr_p
+                val = val_map.get(t, {})
+                oos_df = val.get("out_of_sample_predictions")
+                pred_p = p.get("predicted_price_n1")
+                if not pred_p and oos_df is not None and not oos_df.empty:
+                    pred_p = float(oos_df["predicted_price"].iloc[-1])
+                if not pred_p:
+                    pred_p = curr_p
 
-            win_p = p.get("win_probability", 0.55 if dir_str == "BULLISH" else 0.45)
-            action = pos.get("action", "FLAT")
-            s_str = f"{s_levels.get('S1', 0)} / {s_levels.get('S2', 0)}"
-            r_str = f"{r_levels.get('R1', 0)} / {r_levels.get('R2', 0)}"
-            rr = pos.get("risk_reward_ratio", 1.0)
+                win_p = p.get("win_probability", 0.55 if dir_str == "BULLISH" else 0.45)
+                action = pos.get("action", "FLAT")
+                s_str = f"{s_levels.get('S1', 0)} / {s_levels.get('S2', 0)}"
+                r_str = f"{r_levels.get('R1', 0)} / {r_levels.get('R2', 0)}"
+                rr = pos.get("risk_reward_ratio", 1.0)
 
-            md.append(
-                f"| **{t}** | {name} | {curr_p} | {sent:+.3f} | {lbl} | **{dir_str}** | **{pred_p}** | "
-                f"{win_p*100:.1f}% | `{action}` | {s_str} | {r_str} | {rr:.2f}x |\n"
-            )
+                lines.append(
+                    f"| {idx} | **{t}** | {name} | {mentions} | {curr_p} | {sent:+.3f} | {lbl} | **{dir_str}** | **{pred_p}** | "
+                    f"{win_p*100:.1f}% | `{action}` | {s_str} | {r_str} | {rr:.2f}x |\n"
+                )
+            return lines
 
+        hkex_profiles = sorted(
+            [p for p in profiles if p["ticker"].endswith(".HK")],
+            key=lambda x: (x.get("total_mentions", 0), x.get("sentiment_score", 0.0)),
+            reverse=True,
+        )
+        krx_profiles = sorted(
+            [p for p in profiles if p["ticker"].endswith(".KS")],
+            key=lambda x: (x.get("total_mentions", 0), x.get("sentiment_score", 0.0)),
+            reverse=True,
+        )
+
+        md.append("### 2.1 HKEX Equities (Hong Kong) — Ranked by Social Volume & Sentiment\n")
+        md.extend(render_table(hkex_profiles))
+        md.append("\n")
+
+        md.append("### 2.2 KRX Equities (South Korea) — Ranked by Social Volume & Sentiment\n")
+        md.extend(render_table(krx_profiles))
         md.append("\n---\n")
 
         # 3. Retail Crowd vs. Institutional Smart Money Divergence Analysis

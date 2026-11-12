@@ -167,7 +167,7 @@ class ApifySocialCollector:
         keywords: List[str],
         days: int = 10,
     ) -> List[Dict[str, Any]]:
-        """Query configured Apify Actor for forum discussions."""
+        """Query configured Apify Actor for forum discussions with compliant schema."""
         try:
             from apify_client import ApifyClient
         except ImportError:
@@ -176,35 +176,55 @@ class ApifySocialCollector:
         client = ApifyClient(self.apify_api_token)
         actor_id = self.actors.get("forum_scraper", "apify/cheerio-scraper")
 
-        # Determine target search query
-        kw_str = " ".join(keywords) if keywords else ticker
-        run_input = {
-            "searchQuery": f"{ticker} {kw_str}",
-            "maxItems": 15,
-            "days": days,
-        }
+        # Determine target search query & target URLs for HKEX / KRX
+        kw_str = "+".join(keywords) if keywords else ticker
+        if ticker.endswith(".HK"):
+            symbol_code = ticker.replace(".HK", "")
+            target_url = f"https://lihkg.com/search?q={ticker}+{kw_str}"
+        else:
+            symbol_code = ticker.replace(".KS", "")
+            target_url = f"https://finance.naver.com/item/board.naver?code={symbol_code}"
 
-        run = client.actor(actor_id).call(run_input=run_input, timeout_secs=25)
-        if not run or "defaultDatasetId" not in run:
+        # Build schema compliant with cheerio-scraper / web-scraper / generic actors
+        if "cheerio" in actor_id or "web-scraper" in actor_id:
+            run_input = {
+                "startUrls": [{"url": target_url}],
+                "maxRequestsPerCrawl": 10,
+                "pageFunction": "async function pageFunction(context) { const { $ } = context; return [{ title: $('title').text(), text: $('body').text().slice(0, 1000) }]; }",
+            }
+        else:
+            run_input = {
+                "searchQuery": f"{ticker} {kw_str}",
+                "startUrls": [{"url": target_url}],
+                "maxItems": 15,
+                "days": days,
+            }
+
+        try:
+            run = client.actor(actor_id).call(run_input=run_input, timeout_secs=25)
+            if not run or "defaultDatasetId" not in run:
+                return []
+
+            dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
+            results = []
+            for idx, item in enumerate(dataset_items):
+                ts = item.get("createdAt") or item.get("timestamp") or datetime.now(timezone.utc).isoformat()
+                norm_ts = self._normalize_utc_timestamp(ts)
+                results.append({
+                    "post_id": str(item.get("id") or f"apify_{ticker}_{idx}_{uuid.uuid4().hex[:6]}"),
+                    "ticker": ticker,
+                    "source": item.get("source") or ("LIHKG" if ticker.endswith(".HK") else "Naver Finance Board"),
+                    "timestamp": norm_ts,
+                    "text": str(item.get("text") or item.get("title") or item.get("content") or ""),
+                    "likes": int(item.get("likes") or item.get("upvotes") or 10),
+                    "reposts": int(item.get("reposts") or item.get("shares") or 0),
+                    "views": int(item.get("views") or 500),
+                    "author_followers": int(item.get("author_followers") or 100),
+                })
+            return results
+        except Exception as e:
+            print(f"[ApifySocialCollector] Apify call failed: {e}. Falling back to synthetic mock data.")
             return []
-
-        dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
-        results = []
-        for idx, item in enumerate(dataset_items):
-            ts = item.get("createdAt") or item.get("timestamp") or datetime.now(timezone.utc).isoformat()
-            norm_ts = self._normalize_utc_timestamp(ts)
-            results.append({
-                "post_id": str(item.get("id") or f"apify_{ticker}_{idx}_{uuid.uuid4().hex[:6]}"),
-                "ticker": ticker,
-                "source": item.get("source") or ("LIHKG" if ticker.endswith(".HK") else "Naver Finance Board"),
-                "timestamp": norm_ts,
-                "text": str(item.get("text") or item.get("title") or item.get("content") or ""),
-                "likes": int(item.get("likes") or item.get("upvotes") or 10),
-                "reposts": int(item.get("reposts") or item.get("shares") or 0),
-                "views": int(item.get("views") or 500),
-                "author_followers": int(item.get("author_followers") or 100),
-            })
-        return results
 
     def _normalize_utc_timestamp(self, ts_input: Optional[Any]) -> str:
         now_utc = datetime.now(timezone.utc)

@@ -469,3 +469,225 @@ html,body{{min-height:100%;background:{_BG};color:{_WHITE};font-family:'Inter','
         path = Path(output_path) if output_path else self.output_dir / f"{safe}_dashboard.html"
         path.write_text(html, encoding="utf-8")
         return str(path)
+
+    def create_exchange_summary_dashboard(
+        self,
+        profiles: list,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Generate a cross-market comparative visual report ranking tickers by mentions and sentiment."""
+        hkex_profiles = sorted(
+            [p for p in profiles if p["ticker"].endswith(".HK")],
+            key=lambda x: (x.get("total_mentions", 0), x.get("sentiment_score", 0.0)),
+            reverse=True,
+        )
+        krx_profiles = sorted(
+            [p for p in profiles if p["ticker"].endswith(".KS")],
+            key=lambda x: (x.get("total_mentions", 0), x.get("sentiment_score", 0.0)),
+            reverse=True,
+        )
+
+        fig = make_subplots(
+            rows=2,
+            cols=2,
+            subplot_titles=[
+                "HKEX Equities: Mentions & Sentiment Score (Ranked)",
+                "KRX Equities: Mentions & Sentiment Score (Ranked)",
+                "10-Asset ML Return Forecast at n+1 (%) & Win Probability",
+                "Support (S1) vs Current Price vs Resistance (R1) Channels",
+            ],
+            specs=[
+                [{"secondary_y": True}, {"secondary_y": True}],
+                [{"secondary_y": False}, {"secondary_y": False}],
+            ],
+            horizontal_spacing=0.08,
+            vertical_spacing=0.15,
+        )
+
+        # Panel 1: HKEX Mentions (Bar) + Sentiment (Scatter)
+        if hkex_profiles:
+            hk_names = [f"{p['ticker']}<br>{p['asset_name']}" for p in hkex_profiles]
+            hk_mentions = [p.get("total_mentions", 0) for p in hkex_profiles]
+            hk_sents = [p.get("sentiment_score", 0.0) for p in hkex_profiles]
+            hk_colors = [_GREEN if s > 0.05 else (_RED if s < -0.05 else _GREY) for s in hk_sents]
+
+            fig.add_trace(
+                go.Bar(
+                    x=hk_names,
+                    y=hk_mentions,
+                    name="HKEX Mentions",
+                    marker=dict(color=_BLUE, opacity=0.85, line=dict(color=_BORDER, width=1)),
+                    text=[f"{m} posts" for m in hk_mentions],
+                    textposition="auto",
+                ),
+                row=1, col=1, secondary_y=False,
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=hk_names,
+                    y=hk_sents,
+                    name="HKEX Sentiment",
+                    mode="lines+markers+text",
+                    line=dict(color=_GOLD, width=2.5),
+                    marker=dict(size=10, color=hk_colors, symbol="diamond"),
+                    text=[f"{s:+.2f}" for s in hk_sents],
+                    textposition="top center",
+                    textfont=dict(size=10, color=_WHITE),
+                ),
+                row=1, col=1, secondary_y=True,
+            )
+
+        # Panel 2: KRX Mentions (Bar) + Sentiment (Scatter)
+        if krx_profiles:
+            kr_names = [f"{p['ticker']}<br>{p['asset_name']}" for p in krx_profiles]
+            kr_mentions = [p.get("total_mentions", 0) for p in krx_profiles]
+            kr_sents = [p.get("sentiment_score", 0.0) for p in krx_profiles]
+            kr_colors = [_GREEN if s > 0.05 else (_RED if s < -0.05 else _GREY) for s in kr_sents]
+
+            fig.add_trace(
+                go.Bar(
+                    x=kr_names,
+                    y=kr_mentions,
+                    name="KRX Mentions",
+                    marker=dict(color=_PURPLE, opacity=0.85, line=dict(color=_BORDER, width=1)),
+                    text=[f"{m} posts" for m in kr_mentions],
+                    textposition="auto",
+                ),
+                row=1, col=2, secondary_y=False,
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=kr_names,
+                    y=kr_sents,
+                    name="KRX Sentiment",
+                    mode="lines+markers+text",
+                    line=dict(color=_GOLD, width=2.5),
+                    marker=dict(size=10, color=kr_colors, symbol="diamond"),
+                    text=[f"{s:+.2f}" for s in kr_sents],
+                    textposition="top center",
+                    textfont=dict(size=10, color=_WHITE),
+                ),
+                row=1, col=2, secondary_y=True,
+            )
+
+        # Panel 3: 10-Asset ML Return Forecast at n+1 (%)
+        sorted_by_ret = sorted(profiles, key=lambda x: x.get("predicted_return_pct", 0.0), reverse=True)
+        ret_tickers = [p["ticker"] for p in sorted_by_ret]
+        ret_pcts = [round(p.get("predicted_return_pct", 0.0) * 100.0, 2) for p in sorted_by_ret]
+        ret_colors = [_GREEN if r >= 0 else _RED for r in ret_pcts]
+        ret_texts = [f"{r:+.2f}% ({p.get('win_probability', 0.5)*100:.0f}% win)" for r, p in zip(ret_pcts, sorted_by_ret)]
+
+        fig.add_trace(
+            go.Bar(
+                x=ret_tickers,
+                y=ret_pcts,
+                name="Forecast Return n+1",
+                marker=dict(color=ret_colors, opacity=0.9, line=dict(color=_BORDER, width=1)),
+                text=ret_texts,
+                textposition="outside",
+            ),
+            row=2, col=1,
+        )
+
+        # Panel 4: Normalized S1, Price, R1 Distance
+        sr_tickers = [p["ticker"] for p in profiles]
+        s1_dist = [round(((p["support_levels"]["S1"] - p["current_price"]) / p["current_price"]) * 100.0, 2) for p in profiles]
+        r1_dist = [round(((p["resistance_levels"]["R1"] - p["current_price"]) / p["current_price"]) * 100.0, 2) for p in profiles]
+
+        fig.add_trace(
+            go.Bar(
+                x=sr_tickers,
+                y=s1_dist,
+                name="S1 Distance (%)",
+                marker=dict(color=_RED, opacity=0.7),
+                text=[f"{d:.1f}%" for d in s1_dist],
+                textposition="inside",
+            ),
+            row=2, col=2,
+        )
+        fig.add_trace(
+            go.Bar(
+                x=sr_tickers,
+                y=r1_dist,
+                name="R1 Distance (%)",
+                marker=dict(color=_GREEN, opacity=0.7),
+                text=[f"{d:.1f}%" for d in r1_dist],
+                textposition="inside",
+            ),
+            row=2, col=2,
+        )
+
+        fig.update_layout(
+            paper_bgcolor=_BG,
+            plot_bgcolor=_PANEL,
+            font=dict(color=_WHITE, family="Inter, system-ui, sans-serif"),
+            showlegend=False,
+            height=850,
+            margin=dict(l=30, r=30, t=60, b=40),
+            barmode="relative",
+        )
+        fig.update_xaxes(**_GRID)
+        fig.update_yaxes(**_GRID)
+
+        plotly_div = fig.to_html(include_plotlyjs="cdn", full_html=False)
+
+        # Summary KPIs
+        total_hk_mentions = sum(p.get("total_mentions", 0) for p in hkex_profiles)
+        total_kr_mentions = sum(p.get("total_mentions", 0) for p in krx_profiles)
+        bullish_count = sum(1 for p in profiles if p.get("direction") == "BULLISH")
+        bearish_count = len(profiles) - bullish_count
+
+        kpi_row = f"""
+<div class="k"><div class="kl">Total Assets</div><div class="kv">{len(profiles)}</div><div class="ks">5 HKEX + 5 KRX</div></div>
+<div class="k"><div class="kl">HKEX Mentions</div><div class="kv" style="color:{_BLUE}">{total_hk_mentions}</div><div class="ks">LIHKG / Futu</div></div>
+<div class="k"><div class="kl">KRX Mentions</div><div class="kv" style="color:{_PURPLE}">{total_kr_mentions}</div><div class="ks">Naver / Telegram</div></div>
+<div class="k"><div class="kl">Bullish / Bearish</div><div class="kv"><span style="color:{_GREEN}">{bullish_count}</span> / <span style="color:{_RED}">{bearish_count}</span></div><div class="ks">Market Breadth</div></div>
+        """
+
+        html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>CrowdWisdomTrading · Exchange Sentiment & Forecast Ranking Dashboard</title>
+<style>
+*{{box-sizing:border-box;margin:0;padding:0}}
+body{{background:{_BG};color:{_WHITE};font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}}
+.hdr{{display:flex;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid {_BORDER};background:{_PANEL}}}
+.brand{{font-size:11px;color:{_DIM};font-weight:600;letter-spacing:.06em;text-transform:uppercase}}
+.brand span{{color:{_BLUE}}}
+.asset{{font-size:19px;font-weight:700;margin-top:2px}}
+.hdr-r{{font-size:11px;color:{_DIM};text-align:right;line-height:1.6}}
+.hdr-r b{{color:{_WHITE}}}
+.kpis{{display:flex;flex-wrap:wrap;gap:8px;padding:10px 20px;background:{_BG};border-bottom:1px solid {_BORDER}}}
+.k{{flex:1;min-width:110px;background:{_PANEL};border:1px solid {_BORDER};border-radius:7px;padding:9px 13px}}
+.kl{{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:{_DIM};margin-bottom:4px}}
+.kv{{font-size:17px;font-weight:700;line-height:1}}
+.ks{{font-size:10px;color:{_DIM};margin-top:3px}}
+.chart{{padding:8px 12px 0}}
+.foot{{text-align:center;padding:10px;font-size:10px;color:{_DIM};border-top:1px solid {_BORDER};margin-top:4px}}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="brand"><span>CrowdWisdom</span>Trading · Cross-Market Visual Analytics</div>
+    <div class="asset">Exchange-Level Sentiment & Forecast Ranking Dashboard</div>
+  </div>
+  <div class="hdr-r">
+    Coverage: <b>HKEX &amp; KRX</b><br/>
+    Generated: <b id="ts"></b>
+  </div>
+</div>
+<div class="kpis">{kpi_row}</div>
+<div class="chart">{plotly_div}</div>
+<div class="foot">
+  CrowdWisdomTrading &nbsp;·&nbsp; Hang Seng &amp; KRX Sentiment Price Prediction Agent
+  &nbsp;·&nbsp; Zero-Lookahead Walk-Forward Validation &nbsp;·&nbsp; LightGBM + Ridge Ensemble
+</div>
+<script>document.getElementById("ts").textContent=new Date().toUTCString();</script>
+</body>
+</html>"""
+
+        path = Path(output_path) if output_path else self.output_dir / "exchange_summary_dashboard.html"
+        path.write_text(html, encoding="utf-8")
+        return str(path)

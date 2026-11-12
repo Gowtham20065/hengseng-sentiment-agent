@@ -1,7 +1,7 @@
 # Hang Seng & KRX Sentiment Price Prediction Agent
 ### Production Quant Research & Internship Assessment Report — CrowdWisdomTrading
 
-**Generated:** 2026-11-11 08:07:57 UTC | **Lookback Window:** 10 Days Hourly | **Status:** Production-Ready
+**Generated:** 2026-11-12 05:11:14 UTC | **Lookback Window:** 10 Days Hourly | **Status:** Production-Ready
 
 ---
 
@@ -11,30 +11,44 @@ This production-grade intelligence pipeline provides continuous, zero-lookahead 
 
 The architecture fuses **asynchronous multilingual retail social sentiment** (HK Cantonese from LIHKG / Futu, Korean from Naver Finance Board and Telegram) with **institutional news flows** (Exa neural search / Tavily fallback), evaluating signals through a dual **Gemini 2.5 Flash LLM** and domain-specific financial slang lexicon. Signals are synchronized to strict UTC hourly market bars, combined with tri-method Support/Resistance levels (Pivot Extrema, Volume-Weighted KDE, and Fibonacci Retracement), and modeled via regularized LightGBM with rigorous expanding-window out-of-sample walk-forward validation.
 
-## 2. 10-Asset Master Quantitative Scorecard
+## 2. 10-Asset Master Quantitative Scorecard & Exchange Rankings
 
-| Ticker | Asset Name | Current Price | Sentiment | Label | Direction | Pred Price (n+1) | Win Prob | Action | S1 / S2 | R1 / R2 | R:R |
-| :--- | :--- | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+Assets are partitioned by regional exchange and strictly ranked by aggregate social mention velocity followed by net weighted sentiment, providing immediate visual transparency into retail crowd interest and prevailing directional bias.
 
-| **0700.HK** | Tencent Holdings | 407.15 | +0.834 | EXTREMELY BULLISH | **BULLISH** | **407.78** | 73.6% | `LONG` | 404.27 / 400.46 | 411.47 / 417.24 | 0.75x |
 
-| **9988.HK** | Alibaba Group | 87.44 | +0.000 | NEUTRAL | **BEARISH** | **87.42** | 35.2% | `SHORT` | 86.91 / 85.37 | 87.86 / 88.64 | 0.55x |
+### 2.1 HKEX Equities (Hong Kong) — Ranked by Social Volume & Sentiment
 
-| **3690.HK** | Meituan | 153.74 | +0.000 | NEUTRAL | **BULLISH** | **154.08** | 76.2% | `LONG` | 152.42 / 150.24 | 154.54 / 156.86 | 0.36x |
+| Rank | Ticker | Asset Name | Mentions | Current Price | Sentiment | Label | Direction | Pred Price (n+1) | Win Prob | Action | S1 / S2 | R1 / R2 | R:R |
 
-| **1810.HK** | Xiaomi | 29.04 | +0.000 | NEUTRAL | **BEARISH** | **29.12** | 68.0% | `SHORT` | 28.8 / 28.62 | 29.4 / 29.79 | 0.43x |
+| :---: | :--- | :--- | :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
-| **1211.HK** | BYD | 256.09 | +0.000 | NEUTRAL | **BULLISH** | **256.06** | 55.2% | `LONG` | 253.25 / 250.21 | 258.2 / 260.02 | 0.48x |
+| 1 | **9988.HK** | Alibaba Group | 9 | 87.44 | +0.380 | BULLISH | **BEARISH** | **87.42** | 40.9% | `SHORT` | 86.91 / 85.37 | 87.86 / 88.64 | 0.49x |
 
-| **005930.KS** | Samsung Electronics | 58196.0 | +0.000 | NEUTRAL | **BULLISH** | **58206.0** | 77.9% | `LONG` | 57970.0 / 57675.0 | 58752.0 / 59494.0 | 0.93x |
+| 2 | **1211.HK** | BYD | 7 | 256.09 | +0.664 | EXTREMELY BULLISH | **BULLISH** | **255.86** | 52.1% | `LONG` | 253.25 / 250.21 | 258.2 / 260.02 | 0.44x |
 
-| **000660.KS** | SK Hynix | 182891.0 | +0.000 | NEUTRAL | **BULLISH** | **183238.0** | 46.0% | `LONG` | 181764.0 / 179034.0 | 183208.0 / 185443.0 | 0.14x |
+| 3 | **3690.HK** | Meituan | 7 | 153.74 | +0.380 | BULLISH | **BULLISH** | **154.01** | 77.7% | `LONG` | 152.42 / 150.24 | 154.54 / 156.86 | 0.32x |
 
-| **035420.KS** | NAVER | 178719.0 | +0.000 | NEUTRAL | **BULLISH** | **178654.0** | 56.5% | `LONG` | 176996.0 / 176010.0 | 179132.0 / 180187.0 | 0.16x |
+| 4 | **1810.HK** | Xiaomi | 7 | 29.04 | +0.299 | BULLISH | **BULLISH** | **29.13** | 66.7% | `LONG` | 28.8 / 28.62 | 29.4 / 29.79 | 0.78x |
 
-| **035720.KS** | Kakao | 36748.0 | +0.000 | NEUTRAL | **BEARISH** | **36734.0** | 56.1% | `SHORT` | 36512.0 / 36063.0 | 37294.0 / 37639.0 | 0.31x |
+| 5 | **0700.HK** | Tencent Holdings | 6 | 407.15 | +0.834 | EXTREMELY BULLISH | **BULLISH** | **407.68** | 74.4% | `LONG` | 404.27 / 400.46 | 411.47 / 417.24 | 0.73x |
 
-| **373220.KS** | LG Energy Solution | 320629.0 | +0.000 | NEUTRAL | **BULLISH** | **319690.0** | 30.9% | `LONG` | 319277.0 / 317126.0 | 321381.0 / 323944.0 | 0.24x |
+
+
+### 2.2 KRX Equities (South Korea) — Ranked by Social Volume & Sentiment
+
+| Rank | Ticker | Asset Name | Mentions | Current Price | Sentiment | Label | Direction | Pred Price (n+1) | Win Prob | Action | S1 / S2 | R1 / R2 | R:R |
+
+| :---: | :--- | :--- | :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+
+| 1 | **000660.KS** | SK Hynix | 7 | 182891.0 | +0.664 | EXTREMELY BULLISH | **BULLISH** | **183014.0** | 44.3% | `LONG` | 181764.0 / 179034.0 | 183208.0 / 185443.0 | 0.13x |
+
+| 2 | **035420.KS** | NAVER | 7 | 178719.0 | +0.380 | BULLISH | **BULLISH** | **178679.0** | 57.5% | `LONG` | 176996.0 / 176010.0 | 179132.0 / 180187.0 | 0.13x |
+
+| 3 | **373220.KS** | LG Energy Solution | 7 | 320629.0 | +0.380 | BULLISH | **BEARISH** | **319634.0** | 31.4% | `SHORT` | 319277.0 / 317126.0 | 321381.0 / 323944.0 | 0.43x |
+
+| 4 | **035720.KS** | Kakao | 7 | 36748.0 | -0.013 | NEUTRAL | **BULLISH** | **36751.0** | 61.5% | `LONG` | 36512.0 / 36063.0 | 37294.0 / 37639.0 | 1.07x |
+
+| 5 | **005930.KS** | Samsung Electronics | 2 | 58196.0 | +0.424 | BULLISH | **BULLISH** | **58199.0** | 78.7% | `LONG` | 57970.0 / 57675.0 | 58752.0 / 59494.0 | 0.84x |
 
 
 ---
@@ -50,58 +64,58 @@ Quantitative divergence measures the spread between high-velocity retail discuss
 - **Signal Alert:** > BEARISH DIVERGENCE: Retail hyper-bullish while institutional news is cautious.
 
 ### Alibaba Group (9988.HK)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.3799`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `+0.0000`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### Meituan (3690.HK)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.3799`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `+0.0000`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### Xiaomi (1810.HK)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.2995`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `+0.0804`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### BYD (1211.HK)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.6640`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `-0.2841`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### Samsung Electronics (005930.KS)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.4241`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `-0.0442`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### SK Hynix (000660.KS)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.6640`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `-0.2841`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### NAVER (035420.KS)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.3799`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `+0.0000`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ### Kakao (035720.KS)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `-0.0134`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
+- **Divergence Metric:** `+0.3933`
 - **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
 
 ### LG Energy Solution (373220.KS)
-- **Retail Forum Sentiment:** `+0.0000`
+- **Retail Forum Sentiment:** `+0.3799`
 - **Institutional News Sentiment:** `+0.3799`
-- **Divergence Metric:** `+0.3799`
-- **Signal Alert:** > BULLISH DIVERGENCE: Institutional news accumulating while retail crowd is overly pessimistic.
+- **Divergence Metric:** `+0.0000`
+- **Signal Alert:** > NEUTRAL ALIGNMENT: Retail and institutional sentiment in relative equilibrium.
 
 ---
 
@@ -136,25 +150,25 @@ To ensure production integrity and eliminate backtest overfitting, all predictiv
 | Ticker | OOS Bars | Directional Hit Rate | Info Coeff (IC) | MAE | RMSE | Strategy Return | Benchmark Return | Alpha | Sharpe Ratio | Max DD |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
-| **0700.HK** | 5 | **60.0%** | +0.200 | 3.93 | 4.86 | +0.67% | +3.43% | **-2.76%** | 5.71 | 1.69% |
+| **0700.HK** | 5 | **40.0%** | -0.600 | 4.57 | 5.52 | -0.77% | +3.43% | **-4.20%** | -5.72 | 2.69% |
 
-| **9988.HK** | 19 | **47.4%** | +0.325 | 0.65 | 0.80 | +1.92% | -1.07% | **+2.99%** | 4.93 | 2.00% |
+| **9988.HK** | 19 | **36.8%** | +0.079 | 0.69 | 0.87 | -3.31% | -1.07% | **-2.24%** | -7.70 | 5.26% |
 
-| **3690.HK** | 19 | **52.6%** | +0.193 | 1.05 | 1.34 | +0.00% | +3.31% | **-3.31%** | 0.19 | 4.99% |
+| **3690.HK** | 19 | **42.1%** | +0.049 | 1.09 | 1.37 | -3.93% | +3.31% | **-7.24%** | -10.17 | 6.92% |
 
-| **1810.HK** | 19 | **42.1%** | +0.372 | 0.19 | 0.23 | +0.47% | +0.62% | **-0.15%** | 1.35 | 3.25% |
+| **1810.HK** | 19 | **42.1%** | +0.245 | 0.20 | 0.24 | +0.47% | +0.62% | **-0.15%** | 1.35 | 3.25% |
 
-| **1211.HK** | 19 | **42.1%** | -0.037 | 2.12 | 2.80 | -5.54% | -3.51% | **-2.03%** | -11.83 | 7.04% |
+| **1211.HK** | 19 | **42.1%** | -0.137 | 2.16 | 2.74 | -5.62% | -3.51% | **-2.11%** | -12.36 | 6.73% |
 
-| **005930.KS** | 6 | **100.0%** | +0.143 | 317.33 | 449.06 | +2.02% | +2.44% | **-0.42%** | 25.25 | 0.25% |
+| **005930.KS** | 6 | **100.0%** | -0.714 | 310.00 | 444.84 | +2.02% | +2.44% | **-0.42%** | 25.25 | 0.25% |
 
-| **000660.KS** | 22 | **45.5%** | +0.048 | 1405.09 | 1679.58 | -2.53% | +0.05% | **-2.58%** | -5.43 | 3.55% |
+| **000660.KS** | 22 | **40.9%** | -0.150 | 1515.55 | 1792.21 | -0.10% | +0.05% | **-0.15%** | -0.03 | 3.16% |
 
-| **035420.KS** | 22 | **54.5%** | +0.381 | 680.09 | 941.78 | -0.32% | +1.66% | **-1.98%** | -0.80 | 2.94% |
+| **035420.KS** | 22 | **63.6%** | +0.351 | 723.55 | 973.69 | +1.38% | +1.66% | **-0.28%** | 4.27 | 1.93% |
 
-| **035720.KS** | 22 | **31.8%** | -0.093 | 273.91 | 321.89 | -7.95% | -6.95% | **-1.00%** | -19.66 | 7.95% |
+| **035720.KS** | 22 | **27.3%** | -0.164 | 296.05 | 344.83 | -6.75% | -6.95% | **+0.20%** | -16.65 | 7.34% |
 
-| **373220.KS** | 22 | **63.6%** | +0.287 | 2051.50 | 2476.43 | +2.38% | +0.69% | **+1.69%** | 5.59 | 4.78% |
+| **373220.KS** | 22 | **63.6%** | +0.327 | 2109.50 | 2473.53 | +4.32% | +0.69% | **+3.63%** | 10.57 | 1.91% |
 
 
 ---

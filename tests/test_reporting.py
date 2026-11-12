@@ -89,6 +89,23 @@ class TestReporting:
         assert "0700.HK" in content
         assert "Tencent Holdings" in content
 
+    def test_visualizer_creates_exchange_summary_dashboard(self, sample_profile_and_df, tmp_path):
+        _, profile, _ = sample_profile_and_df
+        krx_profile = dict(profile)
+        krx_profile.update({"ticker": "005930.KS", "asset_name": "Samsung Electronics", "exchange": "KRX", "total_mentions": 15})
+
+        viz = QuantVisualizer(output_dir=str(tmp_path))
+        summary_file = viz.create_exchange_summary_dashboard(profiles=[profile, krx_profile])
+
+        assert Path(summary_file).exists()
+        with open(summary_file, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        assert "plotly" in content.lower()
+        assert "Exchange-Level Sentiment & Forecast Ranking Dashboard" in content
+        assert "HKEX" in content
+        assert "KRX" in content
+
     def test_report_generator_markdown_output(self, sample_profile_and_df, tmp_path):
         _, profile, validation = sample_profile_and_df
         gen = ReportGenerator(output_dir=str(tmp_path))

@@ -128,7 +128,8 @@ class TestTimeSeriesAligner:
             }
         ]
 
-        enriched = aligner.align(price_df, posts, news)
+        # 1. Test instantaneous alignment (social_decay_hours=0)
+        enriched = aligner.align(price_df, posts, news, social_decay_hours=0)
 
         assert not enriched.empty
         assert len(enriched) == 3
@@ -157,7 +158,7 @@ class TestTimeSeriesAligner:
         assert enriched.iloc[1]["social_weighted_sentiment"] == pytest.approx(-0.5, abs=1e-3)
         assert enriched.iloc[1]["social_bear_ratio"] == 1.0
 
-        # Bar 2 (04:00 UTC) gets no posts (Post 3 is after 04:00 UTC)
+        # Bar 2 (04:00 UTC) gets no posts in (03:00, 04:00] (Post 3 is after 04:00 UTC)
         assert enriched.iloc[2]["social_mentions"] == 0
         assert enriched.iloc[2]["social_weighted_sentiment"] == 0.0
 
@@ -166,4 +167,9 @@ class TestTimeSeriesAligner:
 
         # Divergence check for Bar 0: news (0.6) - social (0.8) = -0.2
         assert enriched.iloc[0]["news_social_divergence"] == pytest.approx(-0.2, abs=1e-3)
+
+        # 2. Test rolling exponential decay alignment (social_decay_hours=24)
+        enriched_decay = aligner.align(price_df, posts, news, social_decay_hours=24)
+        assert enriched_decay.iloc[2]["social_mentions"] == 0
+        assert enriched_decay.iloc[2]["social_weighted_sentiment"] > 0.0  # Decayed memory from Post 1 and 2
 
